@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <cstdint>
-#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <random>
+#include <sstream>
 #include <vector>
 
 #include <png++/png.hpp>
@@ -98,8 +98,11 @@ public:
     SPLIT_TREE = 3,
   };
 
+  static size_t minimum_cell_size;
+
   template<class T>
-  QuadTree(const Matrix<T>& matrix) : type(UNDEFINED_TREE), parent(0) {
+  QuadTree(const Matrix<T>& matrix)
+    : type(UNDEFINED_TREE), parent(0) {
     init(matrix, 0, 0, matrix.get_width(), this);
   }
 
@@ -156,7 +159,8 @@ public:
       if (last_size == current_size) {
         ++maximum_detail_loss;
         if (maximum_detail_loss > 4)
-          throw runtime_error("image is hopelessly complex");
+          throw runtime_error
+            ("image is hopelessly complex; try a smaller cell size");
       }
 
       const size_t index = rand() % leaves.size();
@@ -313,7 +317,6 @@ private:
     }
   }
 
-  static const size_t minimum_cell_size = 128;
   static const size_t maximum_encoded_size = 903;
 
   Type type;
@@ -322,22 +325,25 @@ private:
 
 };
 
+size_t QuadTree::minimum_cell_size = 64;
+
 int main(int argc, char** argv) try {
   --argc;
   ++argv;
-  if (argc != 1)
-    throw runtime_error("Usage: png2tweet FILE.png");
+  if (argc < 1 || argc > 2)
+    throw runtime_error("Usage: png2tweet filename.png [cell size]");
+
+  if (argc == 2) {
+    istringstream stream(argv[1]);
+    if (!(stream >> QuadTree::minimum_cell_size))
+      throw runtime_error("invalid cell size");
+  }
 
   cerr << "Reading " << argv[0] << '\n';
   png::image<png::ga_pixel> image;
-  ifstream stream(argv[0]);
-  if (!stream.good())
-    throw runtime_error("Read failed! :(");
   try {
-    image.read(stream, png::convert_color_space<png::ga_pixel>());
-  } catch (const exception& error) {
-    cerr << error.what() << '\n';
-  }
+    image.read(argv[0], png::convert_color_space<png::ga_pixel>());
+  } catch (const exception&) {}
 
   cerr << "Needlessly building matrix\n";
   Matrix<uint8_t> pixels(image.get_width(), image.get_height());
