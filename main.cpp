@@ -121,14 +121,13 @@ public:
   }
 
   size_t encoded_size() const {
-    size_t result = 0;
+    size_t result = 2;
     switch (type) {
     case UNDEFINED_TREE:
       throw runtime_error("encoded_size() on undefined tree");
     case BLACK_TREE:
     case GREY_TREE:
     case WHITE_TREE:
-      result += 2;
       break;
     case SPLIT_TREE:
       for (const auto& child : children)
