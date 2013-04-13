@@ -95,9 +95,9 @@ Matrix<T> make_square(const Matrix<T>& input) {
   const auto height = next_greater_power_of_2(input.get_height());
   const auto size = max(width, height);
   Matrix<T> output(size, size);
-  for (size_t y = 0; y < height; ++y)
-    for (size_t x = 0; x < width; ++x)
-      output(x * size / width, y * size / height) = input(x, y);
+  for (size_t y = 0; y < input.get_height(); ++y)
+    for (size_t x = 0; x < input.get_width(); ++x)
+      output(size * x / width, size * y / height) = input(x, y);
   return output;
 }
 
