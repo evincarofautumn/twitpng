@@ -6,9 +6,23 @@
 #include <sstream>
 #include <vector>
 
+#include <gmpxx.h>
 #include <png++/png.hpp>
 
 using namespace std;
+
+string show_int(mpz_class numerator) {
+  const int base = 95;
+  const int zero = ' ';
+  string result;
+  do {
+    mpz_class denominator = numerator % base;
+    numerator /= base;
+    result += zero + char(denominator.get_ui() % base);
+  } while (numerator);
+  reverse(begin(result), end(result));
+  return result;
+}
 
 template<class T>
 class Matrix {
@@ -122,6 +136,32 @@ public:
           result += child->encoded_size();
     }
     return result;
+  }
+
+  mpz_class encode() const {
+    ostringstream stream;
+    encode(stream);
+    return mpz_class(stream.str(), 2);
+  }
+
+  void encode(ostream& stream) const {
+    switch (type) {
+    case UNDEFINED_TREE:
+      throw runtime_error("encode() on undefined tree");
+    case BLACK_TREE:
+      stream << "00";
+      break;
+    case GREY_TREE:
+      stream << "01";
+      break;
+    case WHITE_TREE:
+      stream << "10";
+      break;
+    case SPLIT_TREE:
+      stream << "11";
+      for (const auto& child : children)
+        child->encode(stream);
+    }
   }
 
   void merge_leaves() {
@@ -363,7 +403,8 @@ int main(int argc, char** argv) try {
   cerr << "Simplifying\n";
   tree.simplify();
 
-  cout << tree << '\n';
+  cerr << "Encoding\n";
+  cout << show_int(tree.encode()) << '\n';
 
 } catch (const exception& error) {
   cerr << error.what() << '\n';
