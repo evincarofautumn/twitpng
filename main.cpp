@@ -370,7 +370,7 @@ int main(int argc, char** argv) try {
   --argc;
   ++argv;
   if (argc < 1 || argc > 2)
-    throw runtime_error("Usage: png2tweet filename.png [cell size]");
+    throw runtime_error("Usage: twitpng filename.png [cell size]");
 
   if (argc == 2) {
     istringstream stream(argv[1]);
